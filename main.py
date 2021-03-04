@@ -4,8 +4,8 @@ import json
 import datetime
 from http.client import responses
 
-token_vk = '3ee331393ee331393ee33139163e9513a833ee33ee331395ede06c3bf8f4a2777077c0a'
-token_ya = 'AgAAAAAgpcUyAADLW51lVu1v2UWTv8V8UEe24dg'
+token_vk = ''
+token_ya = ''
 
 
 class VK:
@@ -94,7 +94,7 @@ class Yandex:
         return print(result)
 
 
-user_1 = VK(token_vk, 7742097)
+user_1 = VK(token_vk, '')
 folder = 'test'
 files = user_1.get_photo()
 uploader = Yandex(token_ya)
