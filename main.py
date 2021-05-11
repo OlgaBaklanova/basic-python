@@ -1,8 +1,8 @@
 import requests
 import tqdm
-import json
-import datetime
 from http.client import responses
+import datetime
+import json
 
 token_vk = ''
 token_ya = ''
@@ -11,7 +11,7 @@ token_ya = ''
 class VK:
     API_BASE_URL = 'https://api.vk.com/method/'
 
-    def __init__(self, token: str, user_id, version='5.130'):
+    def __init__(self, token: str, user_id, version='5.21'):
         self.types = {'s': 1, 'm': 2, 'x': 3, 'o': 4, 'p': 5, 'q': 6, 'r': 7, 'y': 8, 'z': 9, 'w': 10}
         self.vk_site = 'https://vk.com/'
         self.token = token
@@ -19,7 +19,7 @@ class VK:
         self.user_id = user_id
         response = requests.get(self.API_BASE_URL + 'photos.get',
                                 params={'owner_id': self.user_id, 'photo_sizes': 1, 'count': 5, 'album_id': 'profile',
-                                        'extended': 1, 'access_token': token, 'v': 5.130})
+                                        'extended': 1, 'access_token': token, 'v': 5.21})
 
         photos = response.json()
         self.photos = photos['response']['items']
@@ -27,7 +27,7 @@ class VK:
     def get_photo(self):
         result = []
         download_files = []
-        print('загрузка фотографий:')
+        print('Загрузка фотографий:')
         for item in tqdm.tqdm(self.photos):
             max_size = 0
             download_link = {}
@@ -37,7 +37,7 @@ class VK:
                 else:
                     max_size = self.types.get(link['type'])
                     download_link = link
-            url1 = download_link['url']
+            url1 = download_link['src']
             date = datetime.datetime.fromtimestamp(item['date'])
             name = str(date.strftime('%d-%m-%y')) + 'id' + str(item['id']) + '.jpg'
             result.append(name)
@@ -62,26 +62,25 @@ class Yandex:
 
     def upload(self):
         print('Загрузка файлов на Яндекс Диск')
-        folder_u = self.create_folder()
+        folder = self.create_folder()
         for item in tqdm.tqdm(self.FILES):
-            path = folder_u + '/' + item
+            path = folder + '/' + item
             upload_link = requests.get(self.HOST_API + self.UPLOAD_LINK, params={'path': path}, headers=self.TOKEN)
             if upload_link.status_code != requests.codes.ok:
-                return f'\nОшибка при получении URL. Код: ' \
-                       f'{upload_link.status_code} ({responses[upload_link.status_code]})'
-            files_1 = {'file': open(item, 'rb')}
-            request = requests.put(upload_link.json()['href'], params={'path': item}, files=files_1)
+                print(f'\nОшибка при получении URL. Код: ' \
+                       f'{upload_link.status_code} ({responses[upload_link.status_code]})')
+            files = {'file': open(item, 'rb')}
+            request = requests.put(upload_link.json()['href'], params={'path': item}, files=files)
             if not (200 <= request.status_code < 300):
-                return print(f'\nОшибка при загрузке файла. Код: '
+                print(f'\nОшибка при загрузке файла. Код: ' \
                              f'{request.status_code} ({responses[request.status_code]})')
-        return print(f'\nФайлы загружены. Код: {request.status_code} ({responses[request.status_code]})')
+            print(f'\nФайлы загружены. Код: {request.status_code} ({responses[request.status_code]})')
 
     def create_folder(self, folder_name='test'):
-        folder_1 = requests.put(self.HOST_API + self.FOLDER_CREATE,
-                                params={'path': folder_name}, headers=self.TOKEN)
-        if not (200 <= folder_1.status_code < 300):
+        folder = requests.put(self.HOST_API + self.FOLDER_CREATE, params={'path': folder_name}, headers=self.TOKEN)
+        if not (200 <= folder.status_code < 300):
             return f'\nОшибка при при создании папки. Код: ' \
-                   f'{folder_1.status_code} ({responses[folder_1.status_code]})'
+                   f'{folder.status_code} ({responses[folder.status_code]})'
         return folder_name
 
     def file_list(self):
@@ -94,9 +93,9 @@ class Yandex:
         return print(result)
 
 
-user_1 = VK(token_vk, '')
+user = VK(token_vk, 222963986)
 folder = 'test'
-files = user_1.get_photo()
+files = user.get_photo()
 uploader = Yandex(token_ya)
 uploader.upload()
 uploader.file_list()
